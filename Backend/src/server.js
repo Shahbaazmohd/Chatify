@@ -69,26 +69,27 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const express = require('express');
+const cors = require('cors');
 const path = require('path');
+const mongoose = require("mongoose");
 
 const authRoutes = require('./routes/auth.route.js');
 const messageRoutes = require('./routes/message.route.js');
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
-
+// middleware
+app.use(cors());
 app.use(express.json());
 
+// routes
+app.use('/api/auth', authRoutes);
+app.use('/api/messages', messageRoutes);
 
-const mongoose = require("mongoose");
+// database
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("DB Error:", err));
-
-
-app.use('/api/auth', authRoutes);
-app.use('/api/messages', messageRoutes);
 
 // serve frontend
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
@@ -97,6 +98,9 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
 
+// ✅ ONLY ONE LISTEN
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    console.log('Server is running on port ' + PORT);
+  console.log(`Server is running on port ${PORT}`);
 });
