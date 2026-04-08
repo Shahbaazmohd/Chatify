@@ -8,7 +8,13 @@ const auth = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   try {
     const messages = await Message.find().populate('user', 'username').sort({ createdAt: 1 });
-    res.json(messages);
+    const formatted = messages.map(msg => ({
+      _id: msg._id,
+      text: msg.text,
+      username: msg.user?.username,
+      createdAt: msg.createdAt
+    }));
+    res.json(formatted);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
