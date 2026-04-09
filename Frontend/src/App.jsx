@@ -6,12 +6,15 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
   const [token, setToken] = useState(() => localStorage.getItem('chatifyToken') || '');
-  const [signupData, setSignupData] = useState({ username: '', email: '', password: '' });
+  const [signupData, setSignupData] = useState({ fullName: '', email: '', password: '' });
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
 
-  const API_URL = 'http://localhost:3000/api';
+  const defaultApiUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:3000/api'
+    : 'https://chatify-backend.onrender.com/api';
+  const API_URL = import.meta.env.VITE_API_URL || defaultApiUrl;
 
   // ✅ Fetch messages from backend
   const fetchMessages = async () => {
@@ -81,7 +84,8 @@ export default function App() {
         body: JSON.stringify({ text: messageInput }),
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { _id: data.message._id, username: user.username, text: messageInput, createdAt: data.message.createdAt }]);
+      const senderName = user.username || user.fullName || 'You';
+      setMessages((prev) => [...prev, { _id: data.message._id, username: senderName, text: messageInput, createdAt: data.message.createdAt }]);
       setMessageInput('');
     } catch (err) {
       console.error('Send message error:', err);
@@ -105,9 +109,9 @@ export default function App() {
         <div style={{ marginBottom: '30px' }}>
           <h2>Signup</h2>
           <input
-            placeholder="Username"
-            value={signupData.username}
-            onChange={(e) => setSignupData({ ...signupData, username: e.target.value })}
+            placeholder="Full Name"
+            value={signupData.fullName}
+            onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
           />
           <input
             placeholder="Email"
@@ -146,13 +150,13 @@ export default function App() {
     <div style={{ padding: '20px' }}>
       <h1>Chatify</h1>
       <h2>Chat Room</h2>
-      <p>Logged in as: <strong>{user.username}</strong></p>
+      <p>Logged in as: <strong>{user.username || user.fullName || user.email}</strong></p>
       <button onClick={handleLogout}>Logout</button>
 
       <div id="messages" style={{ border: '1px solid #ccc', padding: '10px', height: '300px', overflowY: 'scroll', marginTop: '10px' }}>
         {messages.map((msg) => (
           <p key={msg._id}>
-            <strong>{msg.username}:</strong> {msg.text}
+            <strong>{msg.username || 'Unknown'}:</strong> {msg.text}
           </p>
         ))}
       </div>

@@ -20,8 +20,8 @@ const logoutBtn = document.getElementById('logout-btn');
 const signupSection = document.getElementById('signup-section');
 const loginSection = document.getElementById('login-section');
 
-// Backend base URL
-const BASE_URL = 'http://localhost:3000/api';
+// Backend base URL: use Render backend URL for API requests
+const BASE_URL = 'https://chatify-backend.onrender.com/api';
 
 // --- Helper function to set messages ---
 function showMessage(element, message, success = true) {
@@ -31,11 +31,11 @@ function showMessage(element, message, success = true) {
 
 // --- Signup ---
 signupBtn.addEventListener('click', async () => {
-  const username = signupUsername.value.trim();
+  const fullName = signupUsername.value.trim();
   const email = signupEmail.value.trim();
   const password = signupPassword.value.trim();
 
-  if (!username || !email || !password) {
+  if (!fullName || !email || !password) {
     showMessage(signupMsg, 'All fields are required', false);
     return;
   }
@@ -44,7 +44,7 @@ signupBtn.addEventListener('click', async () => {
     const res = await fetch(`${BASE_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password })
+      body: JSON.stringify({ fullName, email, password })
     });
 
     const data = await res.json();

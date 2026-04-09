@@ -7,11 +7,11 @@ const auth = require('../middleware/auth');
 // GET all messages
 router.get('/', auth, async (req, res) => {
   try {
-    const messages = await Message.find().populate('user', 'username').sort({ createdAt: 1 });
+    const messages = await Message.find().populate('sender', 'fullName').sort({ createdAt: 1 });
     const formatted = messages.map(msg => ({
       _id: msg._id,
       text: msg.text,
-      username: msg.user?.username,
+      username: msg.sender?.fullName || msg.sender?.username || 'Unknown',
       createdAt: msg.createdAt
     }));
     res.json(formatted);
@@ -26,7 +26,7 @@ router.post('/', auth, async (req, res) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ message: 'Message text is required' });
 
-    const message = await Message.create({ user: req.user._id, text });
+    const message = await Message.create({ sender: req.user._id, text });
     res.status(201).json({ message });
   } catch (err) {
     res.status(500).json({ message: err.message });

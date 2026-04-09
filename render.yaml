@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: chatify
+    env: node
+    plan: free
+    root: backend
+    buildCommand: cd ../frontend && npm install && npm run build && cd ../backend && npm install
+    startCommand: node src/server.js

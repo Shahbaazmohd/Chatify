@@ -112,9 +112,9 @@ const jwt = require('jsonwebtoken');
 // ✅ SIGNUP
 router.post('/signup', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { fullName, email, password } = req.body;
 
-        if (!username || !email || !password) {
+        if (!fullName || !email || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -126,7 +126,7 @@ router.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
-            username,
+            fullName,
             email,
             password: hashedPassword
         });
@@ -135,7 +135,7 @@ router.post('/signup', async (req, res) => {
             message: "User created successfully",
             user: {
                 id: user._id,
-                username: user.username,
+                username: user.fullName,
                 email: user.email
             }
         });
@@ -180,7 +180,7 @@ router.post('/login', async (req, res) => {
             token,
             user: {
                 id: user._id,
-                username: user.username,
+                username: user.fullName,
                 email: user.email
             }
         });

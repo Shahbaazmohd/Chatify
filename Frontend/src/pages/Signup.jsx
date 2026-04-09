@@ -1,18 +1,19 @@
 import { useState } from "react";
 
 function Signup() {
-  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL || 'https://chatify-backend.onrender.com/api';
 
   const handleSignup = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/signup", {
+      const res = await fetch(`${API_URL}/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ fullName, email, password })
       });
 
       const data = await res.json();
@@ -34,8 +35,8 @@ function Signup() {
 
       <input
         type="text"
-        placeholder="Username"
-        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Full Name"
+        onChange={(e) => setFullName(e.target.value)}
       />
 
       <input
