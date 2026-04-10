@@ -21,6 +21,9 @@ const generateToken = (userId, res) => {
 // --------------------- SIGNUP ---------------------
 exports.signup = async (req, res) => {
   try {
+    console.log("--> Receiving signup request:");
+    console.log("req.body:", req.body);
+    
     const { username, fullName, email, password } = req.body;
     const targetName = fullName || username;
 
@@ -56,10 +59,11 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({
       message: 'User created successfully',
-      _id: savedUser._id,
-      fullName: savedUser.fullName,
-      email: savedUser.email,
-      profilePic: savedUser.profilePic,
+      user: {
+        id: savedUser._id,
+        username: savedUser.fullName,
+        email: savedUser.email
+      }
     });
   } catch (err) {
     console.error("Error in signup controller:", err);
@@ -86,14 +90,16 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    generateToken(user._id, res);
+    const token = generateToken(user._id, res);
 
     res.status(200).json({
       message: 'Login successful',
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      profilePic: user.profilePic,
+      token, // Ensure the cookie's token is also in the body if they expected it
+      user: {
+        id: user._id,
+        username: user.fullName,
+        email: user.email
+      }
     });
   } catch (err) {
     console.error("Error in login controller:", err);
