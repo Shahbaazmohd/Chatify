@@ -13,9 +13,15 @@ const app = express();
 
 // middleware
 app.use(cors({
-  origin: "https://chatify-app1-21iphuooy-shahbaazmohd08-7596s-projects.vercel.app",
+  origin: [
+    "http://localhost:5173",
+    "https://chatify-app1-21iphuooy-shahbaazmohd08-7596s-projects.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
+app.options('*', cors());
 app.use(express.json());
 
 // routes
