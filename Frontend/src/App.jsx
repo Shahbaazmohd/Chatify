@@ -11,7 +11,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
 
-  const API = import.meta.env.VITE_API_URL || 'https://chatify-backend.onrender.com';
+  const API = import.meta.env.VITE_API_URL;
   // ✅ Fetch messages from backend
   const fetchMessages = async () => {
     if (!token) return;
@@ -88,7 +88,7 @@ export default function App() {
         body: JSON.stringify({ text: messageInput }),
       });
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || 'Failed to send message');
       }
