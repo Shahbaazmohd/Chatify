@@ -24,9 +24,17 @@ export default function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setMessages(data);
+      console.log(data);
+      // Check if it's an array
+      if (Array.isArray(data)) {
+        setMessages(data);
+      } else {
+        console.error("Not an array:", data);
+        setMessages([]); // fallback
+      }
     } catch (err) {
       console.error('Fetch messages error:', err);
+      setMessages([]); // ensuring array fallback on error too
     }
   };
 
@@ -84,11 +92,17 @@ export default function App() {
         body: JSON.stringify({ text: messageInput }),
       });
       const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to send message');
+      }
+
       const senderName = user.username || user.fullName || 'You';
       setMessages((prev) => [...prev, { _id: data.message._id, username: senderName, text: messageInput, createdAt: data.message.createdAt }]);
       setMessageInput('');
     } catch (err) {
       console.error('Send message error:', err);
+      alert(err.message);
     }
   };
 
