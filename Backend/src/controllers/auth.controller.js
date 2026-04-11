@@ -1,10 +1,10 @@
-const User = require('../models/User.js');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { ENV } from "../lib/env.js";
 
 const generateToken = (userId, res) => {
-  const JWT_SECRET = process.env.JWT_SECRET || 'secret123';
-  const token = jwt.sign({ userId }, JWT_SECRET, {
+  const token = jwt.sign({ userId }, ENV.JWT_SECRET, {
     expiresIn: "7d",
   });
 
@@ -12,68 +12,71 @@ const generateToken = (userId, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "strict",
-    secure: process.env.NODE_ENV !== "Development",
+    secure: ENV.NODE_ENV !== "Development",
   });
 
   return token;
 };
 
 // --------------------- SIGNUP ---------------------
-exports.signup = async (req, res) => {
-  try {
-    console.log("--> Receiving signup request:");
-    console.log("req.body:", req.body);
-    
-    const { username, fullName, email, password } = req.body;
-    const targetName = fullName || username;
+export const signup = async (req, res) => {
+  const { fullName, email, password } = req.body;
 
-    if (!targetName || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+  try {
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
+    // check if email is valid: regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+    const user = await User.findOne({ email });
+    if (user) return res.status(400).json({ message: "Email already exists" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = new User({
-      
-      fullName: targetName,
+      fullName,
       email,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
-    const savedUser = await newUser.save();
-    generateToken(savedUser._id, res);
+    if (newUser) {
+      const savedUser = await newUser.save();
+      generateToken(savedUser._id, res);
 
-    res.status(201).json({
-      message: 'User created successfully',
-      user: {
-        id: savedUser._id,
-        username: savedUser.fullName,
-        email: savedUser.email
+      res.status(201).json({
+        _id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        profilePic: newUser.profilePic,
+      });
+
+      // Dummy welcome email try block per their tutorial snippet
+      try {
+        // await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL);
+      } catch (error) {
+        console.error("Failed to send welcome email:", error);
       }
-    });
-  } catch (err) {
-    console.error("Error in signup controller:", err);
-    res.status(500).json({ message: 'Server error' });
+    } else {
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  } catch (error) {
+    console.log("Error in signup controller:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 // --------------------- LOGIN ---------------------
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -91,16 +94,13 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = generateToken(user._id, res);
+    generateToken(user._id, res);
 
     res.status(200).json({
-      message: 'Login successful',
-      token, // Ensure the cookie's token is also in the body if they expected it
-      user: {
-        id: user._id,
-        username: user.fullName,
-        email: user.email
-      }
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      profilePic: user.profilePic,
     });
   } catch (err) {
     console.error("Error in login controller:", err);
@@ -109,12 +109,7 @@ exports.login = async (req, res) => {
 };
 
 // --------------------- LOGOUT ---------------------
-exports.logout = (req, res) => {
-  try {
-    res.cookie("jwt", "", { maxAge: 0 });
-    res.status(200).json({ message: 'Logged out successfully' });
-  } catch (err) {
-    console.error("Error in logout controller:", err);
-    res.status(500).json({ message: 'Server error' });
-  }
+export const logout = (_, res) => {
+  res.cookie("jwt", "", { maxAge: 0 });
+  res.status(200).json({ message: "Logged out successfully" });
 };

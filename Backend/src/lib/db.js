@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-// import { ENV } from "./env.js";
+import { ENV } from "./env.js";
 
 export const connectDB = async () => {
   try {
@@ -10,6 +10,6 @@ export const connectDB = async () => {
     console.log("MONGODB CONNECTED:", conn.connection.host);
   } catch (error) {
     console.error("Error connection to MONGODB:", error);
-    process.exit(1); // 1 status code means fail, 0 means success
+    process.exit(1);
   }
 };

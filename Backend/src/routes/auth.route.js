@@ -1,9 +1,13 @@
-const express = require('express');
+import express from "express";
+import { signup, login, logout } from "../controllers/auth.controller.js";
+import { arcjetProtection } from "../middleware/arcjet.middleware.js";
+
 const router = express.Router();
-const authController = require('../controllers/auth.controller');
 
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.post('/logout', authController.logout);
+router.use(arcjetProtection);
 
-module.exports = router;
+router.post("/signup", signup);
+router.post("/login", login);
+router.post("/logout", logout);
+
+export default router;
