@@ -11,11 +11,8 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
 
-  const defaultApiUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:3000/api'
-    : 'https://chatify-backend.onrender.com/api';
-  const API_URL = import.meta.env.VITE_API_URL || defaultApiUrl;
-
+  const API = import.meta.env.VITE_API_URL || 'https://chatify-backend.onrender.com';
+  const API_URL = `${API}/api`.replace('//api', '/api'); // Ensure api prefix without doubling up
   // ✅ Fetch messages from backend
   const fetchMessages = async () => {
     if (!token) return;
