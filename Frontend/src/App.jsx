@@ -44,7 +44,11 @@ export default function App() {
       const res = await fetch(`${API}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signupData),
+        body: JSON.stringify({
+          username: signupData.fullName,
+          email: signupData.email,
+          password: signupData.password
+        }),
       });
       const data = await res.json();
       alert(data.message);
@@ -59,7 +63,10 @@ export default function App() {
       const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData),
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password
+        }),
       });
       const data = await res.json();
       if (data.token) {
