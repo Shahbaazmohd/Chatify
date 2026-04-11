@@ -60,6 +60,7 @@ export default function App() {
 
   // ✅ Login
   const handleLogin = async () => {
+    console.log("Login clicked");
     try {
       const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
@@ -142,7 +143,7 @@ export default function App() {
             value={signupData.password}
             onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
           />
-          <button onClick={handleSignup}>Signup</button>
+          <button type="button" onClick={handleSignup}>Signup</button>
         </div>
 
         <div>
@@ -158,7 +159,7 @@ export default function App() {
             value={loginData.password}
             onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
           />
-          <button onClick={handleLogin}>Login</button>
+          <button type="button" onClick={handleLogin}>Login</button>
         </div>
       </div>
     );
