@@ -12,12 +12,11 @@ export default function App() {
   const [messageInput, setMessageInput] = useState('');
 
   const API = import.meta.env.VITE_API_URL || 'https://chatify-backend.onrender.com';
-  const API_URL = `${API}/api`.replace('//api', '/api'); // Ensure api prefix without doubling up
   // ✅ Fetch messages from backend
   const fetchMessages = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/messages`, {
+      const res = await fetch(`${API}/api/messages`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -42,7 +41,7 @@ export default function App() {
   // ✅ Signup
   const handleSignup = async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/signup`, {
+      const res = await fetch(`${API}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signupData),
@@ -57,7 +56,7 @@ export default function App() {
   // ✅ Login
   const handleLogin = async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData),
@@ -80,7 +79,7 @@ export default function App() {
   const handleSendMessage = async () => {
     if (!messageInput) return;
     try {
-      const res = await fetch(`${API_URL}/messages`, {
+      const res = await fetch(`${API}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
