@@ -12,7 +12,7 @@ const generateToken = (userId, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "strict",
-    secure: ENV.NODE_ENV !== "Development",
+    secure: ENV.NODE_ENV === "production",
   });
 
   return token;
@@ -20,11 +20,15 @@ const generateToken = (userId, res) => {
 
 // --------------------- SIGNUP ---------------------
 export const signup = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { email, password } = req.body;
+  const fullName = (req.body.fullName ?? req.body.username ?? "").trim();
 
   try {
     if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        message:
+          "All fields are required (use fullName or username, plus email and password)",
+      });
     }
 
     if (password.length < 6) {

@@ -1,37 +1,236 @@
-import { Navigate, Route, Routes } from "react-router";
-import ChatPage from "./pages/ChatPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import SignUpPage from "./pages/SignUpPage.jsx";
-import { useAuthStore } from "./store/useAuthStore.js";
-import { useEffect } from "react";
-import PageLoader from "./components/PageLoader.jsx";
+import { useState, useEffect } from 'react';
 
-import { Toaster } from "react-hot-toast";
+function readStoredUser() {
+  try {
+    const saved = localStorage.getItem('chatifyUser');
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    localStorage.removeItem('chatifyUser');
+    localStorage.removeItem('chatifyToken');
+    return null;
+  }
+}
 
-function App() {
-  const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
+export default function App() {
+  const [user, setUser] = useState(() => readStoredUser());
+  const [token, setToken] = useState(() => localStorage.getItem('chatifyToken') || '');
+  // Dev: same-origin /api via Vite proxy so httpOnly JWT cookies work. Prod: set VITE_API_URL.
+  const API =
+    import.meta.env.VITE_API_URL ??
+    (import.meta.env.DEV ? '' : 'https://chatify-backend.onrender.com');
+  const [signupData, setSignupData] = useState({ fullName: '', email: '', password: '' });
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
+  const [messages, setMessages] = useState([]);
+  const [messageInput, setMessageInput] = useState('');
+
+  // ✅ Fetch messages from backend (JWT in httpOnly cookie)
+  const fetchMessages = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`${API}/api/messages`, {
+        credentials: 'include',
+      });
+      if (res.status === 401) {
+        localStorage.removeItem('chatifyUser');
+        localStorage.removeItem('chatifyToken');
+        setUser(null);
+        setToken('');
+        setMessages([]);
+        return;
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setMessages(data);
+      } else {
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error('Fetch messages error:', err);
+      setMessages([]);
+    }
+  };
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    fetchMessages();
+  }, [user]);
 
-  if (isCheckingAuth) return <PageLoader />;
+  // ✅ Signup
+  const handleSignup = async () => {
+    try {
+      const res = await fetch(`${API}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          fullName: signupData.fullName,
+          email: signupData.email,
+          password: signupData.password,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('chatifyUser', JSON.stringify(data));
+        localStorage.setItem('chatifyToken', 'cookie');
+        setUser(data);
+        setToken('cookie');
+      } else {
+        alert(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+    }
+  };
+
+  // ✅ Login
+  const handleLogin = async () => {
+    console.log("Login clicked");
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('chatifyUser', JSON.stringify(data));
+        setUser(data);
+        setToken('cookie');
+        localStorage.setItem('chatifyToken', 'cookie');
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+    }
+  };
+
+  // ✅ Send message
+  const handleSendMessage = async () => {
+    if (!messageInput) return;
+    try {
+      const res = await fetch(`${API}/api/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ text: messageInput }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to send message');
+      }
+
+      const senderName = user.username || user.fullName || 'You';
+      setMessages((prev) => [...prev, { _id: data.message._id, username: senderName, text: messageInput, createdAt: data.message.createdAt }]);
+      setMessageInput('');
+    } catch (err) {
+      console.error('Send message error:', err);
+      alert(err.message);
+    }
+  };
+
+  // ✅ Logout
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch {
+      /* ignore */
+    }
+    localStorage.removeItem('chatifyToken');
+    localStorage.removeItem('chatifyUser');
+    setToken('');
+    setUser(null);
+    setMessages([]);
+  };
+
+  // ✅ JSX Rendering
+  if (!user) {
+    return (
+      <div style={{ padding: '20px' }}>
+        <h1>Chatify</h1>
+        <div style={{ marginBottom: '30px' }}>
+          <h2>Signup</h2>
+          <input
+            placeholder="Full Name"
+            value={signupData.fullName}
+            onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+          />
+          <input
+            placeholder="Email"
+            value={signupData.email}
+            onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+          />
+          <input
+            placeholder="Password"
+            type="password"
+            value={signupData.password}
+            onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+          />
+          <button type="button" onClick={handleSignup}>Signup</button>
+        </div>
+
+        <div>
+          <h2>Login</h2>
+          <input
+            placeholder="Email"
+            value={loginData.email}
+            onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+          />
+          <input
+            placeholder="Password"
+            type="password"
+            value={loginData.password}
+            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+          />
+          <button type="button" onClick={handleLogin}>Login</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-900 relative flex items-center justify-center p-4 overflow-hidden">
-      {/* DECORATORS - GRID BG & GLOW SHAPES */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]" />
-      <div className="absolute top-0 -left-4 size-96 bg-pink-500 opacity-20 blur-[100px]" />
-      <div className="absolute bottom-0 -right-4 size-96 bg-cyan-500 opacity-20 blur-[100px]" />
+    <div style={{ padding: '20px' }}>
+      <h1>Chatify</h1>
+      <h2>Chat Room</h2>
+      <p>Logged in as: <strong>{user.username || user.fullName || user.email}</strong></p>
+      <button onClick={handleLogout}>Logout</button>
 
-      <Routes>
-        <Route path="/" element={authUser ? <ChatPage /> : <Navigate to={"/login"} />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to={"/"} />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to={"/"} />} />
-      </Routes>
+      <div id="messages" style={{ border: '1px solid #ccc', padding: '10px', height: '300px', overflowY: 'scroll', marginTop: '10px' }}>
+        {messages.map((msg) => (
+          <p key={msg._id}>
+            <strong>{msg.username || 'Unknown'}:</strong> {msg.text}
+          </p>
+        ))}
+      </div>
 
-      <Toaster />
+      <div style={{ marginTop: '10px' }}>
+        <input
+          placeholder="Type a message"
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+        />
+        <button onClick={handleSendMessage}>Send</button>
+      </div>
     </div>
   );
 }
-export default App;
+
+
+
+
+
+
+
+
+
+
+
