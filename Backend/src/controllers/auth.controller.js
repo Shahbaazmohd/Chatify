@@ -2,6 +2,8 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "../lib/env.js";
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import "dotenv/config";
 
 const generateToken = (userId, res) => {
   const token = jwt.sign({ userId }, ENV.JWT_SECRET, {
@@ -66,7 +68,7 @@ export const signup = async (req, res) => {
 
       // Dummy welcome email try block per their tutorial snippet
       try {
-        // await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL);
+         await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL);
       } catch (error) {
         console.error("Failed to send welcome email:", error);
       }
