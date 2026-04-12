@@ -7,4 +7,8 @@ export const ENV = {
   JWT_SECRET: process.env.JWT_SECRET || "default_secret",
   NODE_ENV: process.env.NODE_ENV || "development",
   CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  // Use onboarding@resend.dev until your domain is verified in Resend (Domains).
+  EMAIL_FROM: process.env.EMAIL_FROM || "onboarding@resend.dev",
+  EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || "Chatify",
 };
