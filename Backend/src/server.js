@@ -21,7 +21,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://chatify-app1-21iphuooy-shahbaazmohd08-7596s-projects.vercel.app",
+      // "https://chatify-app1-21iphuooy-shahbaazmohd08-7596s-projects.vercel.app",
+      "https://chatify-app1-2gamz5n4r-shahbaazmohd08-7596s-projects.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
