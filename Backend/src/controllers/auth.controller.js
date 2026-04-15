@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "../lib/env.js";
+import cloudinary from "../lib/cloudinary.js";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import "dotenv/config";
 
