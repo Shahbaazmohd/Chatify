@@ -15,22 +15,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 import { app, server } from "./lib/socket.js";
+import { ENV } from "./lib/env.js";
+
+const corsOptions = {
+  origin: [ENV.CLIENT_URL],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
 // middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      // "https://chatify-app1-21iphuooy-shahbaazmohd08-7596s-projects.vercel.app",
-      "https://chatify-app1-2gamz5n4r-shahbaazmohd08-7596s-projects.vercel.app",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-app.options("*", cors());
-app.use(express.json());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // routes
