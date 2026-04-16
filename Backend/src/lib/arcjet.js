@@ -8,6 +8,10 @@ const aj = isDevelopment
   ? {
       protect: async () => ({
         isDenied: () => false,
+        reason: {
+          isRateLimit: () => false,
+          isBot: () => false,
+        },
         results: [],
       }),
     }
