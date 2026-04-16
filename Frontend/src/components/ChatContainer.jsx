@@ -36,9 +36,11 @@ function ChatContainer() {
         <>
             <ChatHeader />
             <div className="flex-1 px-6 overflow-y-auto py-8">
-                {messages.length > 0 && !isMessagesLoading ? (
+                {messages && messages.length > 0 && !isMessagesLoading ? (
                     <div className="max-w-3xl mx-auto space-y-6">
-                        {messages.map((msg) => (
+                        {console.log("MESSAGES TYPE:", typeof messages)}
+                        {console.log("MESSAGES VALUE:", messages)}
+                        {(Array.isArray(messages) ? messages : []).map((msg) => (
                             <div
                                 key={msg._id}
                                 className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"}`}
