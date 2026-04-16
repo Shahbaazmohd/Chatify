@@ -89,9 +89,15 @@ export const getChatPartners = async (req, res) => {
       $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
     });
 
+    const safeMessages = Array.isArray(messages)
+      ? messages
+      : Array.isArray(messages?.messages)
+      ? messages.messages
+      : [];
+
     const chatPartnerIds = [
       ...new Set(
-        messages.map((msg) =>
+        safeMessages.map((msg) =>
           msg.senderId.toString() === loggedInUserId.toString()
             ? msg.receiverId.toString()
             : msg.senderId.toString()
