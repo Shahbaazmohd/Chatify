@@ -25,7 +25,7 @@ export const useChatStore = create((set, get) => ({
     set({ isUsersLoading: true });
     try {
       const res = await axiosInstance.get("/messages/contacts");
-      set({ allContacts: res.data });
+      set({ allContacts: Array.isArray(res.data) ? res.data : res.data?.allContacts || [] });
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
@@ -36,7 +36,7 @@ export const useChatStore = create((set, get) => ({
     set({ isUsersLoading: true });
     try {
       const res = await axiosInstance.get("/messages/chats");
-      set({ chats: res.data });
+      set({ chats: Array.isArray(res.data) ? res.data : res.data?.chats || [] });
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
@@ -49,7 +49,7 @@ export const useChatStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
       console.log("API RESPONSE:", res.data);
-      set({ messages: res.data });
+      set({ messages: Array.isArray(res.data) ? res.data : res.data?.messages || [] });
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
